@@ -42,7 +42,7 @@ require get_template_directory() . '/library/function-widget.php';
   ACF
 ==================================================================================*/
 // register widget and sidebar
-require get_template_directory() . '/library/function-acft.php';
+require get_template_directory() . '/library/function-acf.php';
 
 /*==================================================================================
   CUSTOMIZER
