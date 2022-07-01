@@ -26,12 +26,23 @@ require get_template_directory() . '/library/function-dev.php';
 // general settings, enqueue, theme support, disable backend-theme-editor & more
 require get_template_directory() . '/library/function-settings.php';
 
+/*==================================================================================
+  ADMIN DISPALY
+==================================================================================*/
+// Admin Display and rename post
+require get_template_directory() . '/library/function-admin_display.php';
 
 /*==================================================================================
   WIDGET AND SIDEBAR
 ==================================================================================*/
 // register widget and sidebar
 require get_template_directory() . '/library/function-widget.php';
+
+/*==================================================================================
+  ACF
+==================================================================================*/
+// register widget and sidebar
+require get_template_directory() . '/library/function-acft.php';
 
 /*==================================================================================
   CUSTOMIZER

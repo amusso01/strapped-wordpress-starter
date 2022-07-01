@@ -117,7 +117,17 @@ if ( ! function_exists( 'foundry_setup' ) ) :
 			*
 			* @link https://developer.wordpress.org/themes/functionality/featured-images-post-thumbnails/
 			*/
-		add_theme_support( 'post-thumbnails' );
+			add_theme_support( 'post-thumbnails' );
+			add_image_size( 'admin_thumb', 100, 100, true );
+			add_image_size( 'size_200', 200 );
+			add_image_size( 'size_400', 400 );
+			add_image_size( 'size_600', 600 );
+			add_image_size( 'size_800', 800 );
+			add_image_size( 'size_1000', 1000 );
+			add_image_size( 'size_1200', 1200 );
+			add_image_size( 'size_1400', 1400 );
+			add_image_size( 'size_1600', 1600 );
+			add_image_size( 'size_1800', 1800 );
 
 		/*
 			* Switch default core markup for search form, comment form, and comments
@@ -301,3 +311,13 @@ function we_login_logo() {
     </style>
 <?php }
 add_action( 'login_enqueue_scripts', 'we_login_logo' );
+
+
+
+/**
+ * Modify Excerpt Length
+ */
+function custom_excerpt_length( $length ) {
+	return 23;
+}
+add_filter( 'excerpt_length', 'custom_excerpt_length', 999 );

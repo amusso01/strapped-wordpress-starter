@@ -118,19 +118,31 @@ function WPSeed_gtm($type) {
 ==================================================================================*/
 
 
-/* 3.1 LOGIN PAGE
-/––––––––––––––––––––––––*/
-function is_login_page() {
-    return in_array($GLOBALS['pagenow'], array('wp-login.php', 'wp-register.php'));
+ // Print the image's srcset for lazyload
+ function bml_the_image_srcset( $image_id, $echo = true ) {
+
+  if ( !$image_id ) return;
+
+  $image_labels = [ 'size_400', 'size_600', 'size_800', 'size_1000', 'size_1200', 'size_1400', 'size_1600', 'size_1800', 'full' ];
+  $image_set = [];
+
+  foreach ( $image_labels as $image_label ) {
+
+    $image = wp_get_attachment_image_src( $image_id, $image_label );
+    $image_url = $image[0];
+    $image_width = $image[1] <= 300 ? 301 : $image[1];
+
+    $image_set[] =  $image_url . ' ' . ( $image_width - 300 ) . 'w' ;
+  }
+
+  $image_set = array_unique( $image_set );
+
+  if ( $echo ) {
+    echo implode( ', ', $image_set );
+  } else {
+    return implode( ', ', $image_set );
   }
   
-  
-  /* 3.2 RESTRICT ACCES IF NOT LOGGEDIN
-  /––––––––––––––––––––––––––––––––––––*/
-  // redirect all users that are not logged-in to login
-  // remove `false && ` to activate
-  if (false && !is_user_logged_in() && is_main_query() && !is_admin() && !is_login_page()){
-    wp_redirect('/admin'); die();
-  }
+}
 
 
