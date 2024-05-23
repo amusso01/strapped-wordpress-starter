@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Main Functions File - used for:
  * • including other function-files
@@ -8,6 +9,13 @@
  * @author      Andrea Musso
  *
  */
+
+/*==================================================================================
+  WP SETUP
+==================================================================================*/
+// general setup like menu, login font, GTM
+require get_template_directory() . '/library/function-require-plugins.php';
+
 /*==================================================================================
   WP SETUP
 ==================================================================================*/
@@ -63,7 +71,3 @@ require get_template_directory() . '/library/function-guttenberg.php';
 ==================================================================================*/
 // custom functions like shortcodes should be added here
 require get_template_directory() . '/library/function-custom.php';
-
-
-
-

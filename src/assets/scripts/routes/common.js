@@ -1,10 +1,4 @@
 import smoothscroll from "smoothscroll-polyfill";
-import hamburger from "./../part/hamburger";
-
-// https://github.com/aFarkas/lazysizes
-import 'lazysizes';
-import 'lazysizes/plugins/bgset/ls.bgset';
-import 'lazysizes/plugins/parent-fit/ls.parent-fit';
 
 export default {
 	init() {
@@ -15,7 +9,6 @@ export default {
 
 		// Hamburger event listener
 		hamburger();
-	
 	},
 
 	finalize() {
