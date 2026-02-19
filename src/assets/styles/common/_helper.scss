@@ -6,10 +6,10 @@
 	//create the "container" with this applied to any row or any 100% width element
 	padding: 0 6.5rem;
 
-	@include media("<lg") {
+	@include media("<desktop") {
 		padding: 0 3.75rem;
 	}
-	@include media("<sm") {
+	@include media("<phone") {
 		padding: 0 1.2rem;
 	}
 }
@@ -18,13 +18,14 @@
 	max-width: 1920px;
 	margin: 0 auto;
 
-	@include media("<2xl") {
+	@include media("<wideScreen") {
 		max-width: 1520px;
 	}
-	@include media("<xl") {
+	@include media("<desktop") {
 		max-width: 1360px;
 	}
 }
+
 .noscroll {
 	overflow: hidden;
 }
