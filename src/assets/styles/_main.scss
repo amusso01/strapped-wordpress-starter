@@ -3,19 +3,19 @@
 // Vendors
 
 // Common
-@import "common/reset";
-@import "common/variables";
+@use "common/reset";
+@use "common/variables";
 // Import sassflexbox http://sassflexboxgrid.com/views/documentation.html
-@import "common/wp-core";
-@import "common/mixin";
-@import "common/general";
-@import "common/helper";
+@use "common/wp-core";
+@use "common/mixin";
+@use "common/general";
+@use "common/helper";
 
 // Components
-@import "components/hamburger";
-@import "components/search-form";
-@import "components/buttons";
-@import "components/nav";
-@import "components/footer";
+@use "components/hamburger";
+@use "components/search-form";
+@use "components/buttons";
+@use "components/nav";
+@use "components/footer";
 
 // Templates
