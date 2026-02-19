@@ -1,27 +1,10 @@
 /**
   * Variables
-  * Contains re-usable variables like colors, sizes, breakpoints etc.
-  * Normally, you don't have to change anything in essentials.css and general.css
-  * because you'll define the basic-values here.
+  * Contains re-usable variables like colors, sizes, etc.
+  * Breakpoints for the media() live in common/_media.scss.
   *
   *
   */
-// =============== RESPONSIVE ================
-
-$breakpoints:(
-  'phone': 640px,
-  'phone-land': 920px,
-  'tablet': 1140px,
-  'desktop': 1360px,
-  'wideScreen': 1490px
-  ) !default;
-  
-  @import '~include-media/dist/include-media';
-  // EXAMPLE
-  // @include media(">phone", "<=tablet") {
-    //   width: 50%;
-    //   }
-
 /*==================================================================================
   FONT
 ==================================================================================*/
@@ -66,3 +49,11 @@ $text__h6: var(--text-h6);
 $text__p: var(--text-p);
 
 $font__weight: 400; //This is the global font-weight for text, link etc.. Specify header weight separetelly
+
+%cover {
+	height: 100%;
+	left: 0;
+	position: absolute;
+	top: 0;
+	width: 100%;
+}
