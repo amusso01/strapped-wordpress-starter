@@ -45,9 +45,38 @@ function dd($var) {
 
 /* 1.2 Return svg from ACF file field
 /––––––––––––––––––––––––*/
-function acfFile_toSvg($file){
-	if($file)
-    return str_replace('\'', '',  var_export(file_get_contents($file), true));
+function acfFile_toSvg($file)
+{
+  if (!$file) return '';
+
+  static $cache = [];
+  if (isset($cache[$file])) return $cache[$file];
+
+  $path = $file;
+
+  // ACF file fields return URLs — convert to local filesystem path to avoid
+  // slow synchronous HTTP loopback requests from file_get_contents(URL).
+  if (filter_var($file, FILTER_VALIDATE_URL)) {
+    $upload_dir = wp_get_upload_dir();
+    $base_url   = $upload_dir['baseurl'];
+
+    if (strpos($file, $base_url) === 0) {
+      $path = str_replace($base_url, $upload_dir['basedir'], $file);
+    } else {
+      $attachment_id = attachment_url_to_postid($file);
+      if ($attachment_id) {
+        $path = get_attached_file($attachment_id);
+      }
+    }
+  }
+
+  if ($path && file_exists($path)) {
+    $cache[$file] = file_get_contents($path);
+  } else {
+    $cache[$file] = '';
+  }
+
+  return $cache[$file];
 }
 
 
