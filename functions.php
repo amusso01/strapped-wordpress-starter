@@ -14,12 +14,6 @@
   WP SETUP
 ==================================================================================*/
 // general setup like menu, login font, GTM
-require get_template_directory() . '/library/function-require-plugins.php';
-
-/*==================================================================================
-  WP SETUP
-==================================================================================*/
-// general setup like menu, login font, GTM
 require get_template_directory() . '/library/function-setup.php';
 
 /*==================================================================================
@@ -35,22 +29,16 @@ require get_template_directory() . '/library/function-dev.php';
 require get_template_directory() . '/library/function-settings.php';
 
 /*==================================================================================
+  DISABLE COMMENTS
+==================================================================================*/
+require get_template_directory() . '/library/class-disable-comments.php';
+Fdry_Disable_Comments::init();
+
+/*==================================================================================
   ADMIN DISPALY
 ==================================================================================*/
 // Admin Display and rename post
 require get_template_directory() . '/library/function-admin_display.php';
-
-/*==================================================================================
-  WIDGET AND SIDEBAR
-==================================================================================*/
-// register widget and sidebar
-require get_template_directory() . '/library/function-widget.php';
-
-/*==================================================================================
-  ACF
-==================================================================================*/
-// register widget and sidebar
-require get_template_directory() . '/library/function-acf.php';
 
 /*==================================================================================
   CUSTOMIZER

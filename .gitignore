@@ -5,3 +5,4 @@ dist
 node_modules
 src/build/config-local.json
 yarn.lock
+pnpm-lock.yaml

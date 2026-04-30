@@ -1,0 +1,24 @@
+/*
+ * Foundry ACF blocks only (`acf/fd-*` → `wp-block-acf-fd-*` on the list block element itself).
+ * Adds a small gap above each root-level fd block except the first; core blocks are unchanged.
+ */
+.block-editor-block-list__layout.is-root-container
+	> .block-editor-block-list__block:not(
+		:first-child
+	)[class*="wp-block-acf-fd-"] {
+	margin-top: 1rem;
+	margin-bottom: 0.5rem;
+}
+
+/* Editor only: show [data-aos] elements as if already animated (AOS JS does not run in editor) */
+[data-aos],
+[data-aos].aos-animate {
+	opacity: 1 !important;
+	transform: none !important;
+}
+
+ul,
+ol,
+li {
+	list-style: inside;
+}
