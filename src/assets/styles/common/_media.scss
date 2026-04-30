@@ -3,8 +3,8 @@ $breakpoints: (
 	"phone": 640px,
 	"phone-land": 920px,
 	"tablet": 1140px,
-	"desktop": 1360px,
-	"wideScreen": 1560px,
+	"desktop": 1440px,
+	"wideScreen": 1920px,
 ) !default;
 
 @forward "~include-media/dist/include-media" with (

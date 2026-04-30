@@ -14,8 +14,11 @@
     "build": "webpack --progress --mode production  --config src/build/prod.config.js"
   },
   "dependencies": {
+    "accordion-js": "^3.4.1",
+    "aos": "^2.3.4",
     "include-media": "^1.4.10",
-    "smoothscroll-polyfill": "^0.4.4"
+    "smoothscroll-polyfill": "^0.4.4",
+    "swiper": "^12.1.2"
   },
   "devDependencies": {
     "@babel/core": "^7.1.2",

@@ -2,6 +2,7 @@
   GENERAL
 ==================================================================================*/
 @use "variables" as *;
+@use "media" as *;
 
 html {
 	color: $color__text;
@@ -26,7 +27,7 @@ pre,
 ul,
 li,
 ol {
-	color: $color__text;
+	color: inherit;
 }
 
 em,
@@ -56,12 +57,9 @@ sub {
  * Links
  */
 a {
-	color: $color__link;
+	color: inherit;
 	text-decoration: none;
 	font-size: $text__p;
-	&:hover {
-		color: $color__link-hover;
-	}
 }
 
 /*
@@ -112,4 +110,40 @@ h5,
 h6,
 .h6 {
 	font-size: $text__h6;
+}
+
+/*
+ * Headings: 10% smaller below widescreen breakpoint
+ */
+@include media("<desktop") {
+	h1,
+	.h1 {
+		font-size: calc(var(--text-h1) * 0.9);
+	}
+	h2,
+	.h2 {
+		font-size: calc(var(--text-h2) * 0.9);
+	}
+	h3,
+	.h3 {
+		font-size: calc(var(--text-h3) * 0.9);
+	}
+}
+
+/*
+ * Headings: 25% smaller below tablet breakpoint
+ */
+@include media("<phone-land") {
+	h1,
+	.h1 {
+		font-size: calc(var(--text-h1) * 0.75);
+	}
+	h2,
+	.h2 {
+		font-size: calc(var(--text-h2) * 0.75);
+	}
+	h3,
+	.h3 {
+		font-size: calc(var(--text-h3) * 0.75);
+	}
 }

@@ -1,0 +1,53 @@
+@use "media" as *;
+
+// Reusable block padding: set --padding-pt and --padding-pb in a scoped <style> per block,
+// then add .fdry-block-padding to the block root. Any block can use this.
+.fdry-block-padding {
+	padding-top: var(--padding-pt, 0);
+	padding-bottom: var(--padding-pb, 0);
+
+	@include media("<tablet") {
+		padding-top: calc(var(--padding-pt, 0) * 0.75);
+		padding-bottom: calc(var(--padding-pb, 0) * 0.75);
+	}
+
+	@include media("<phone") {
+		padding-top: calc(var(--padding-pt, 0) * 0.5);
+		padding-bottom: calc(var(--padding-pb, 0) * 0.5);
+	}
+}
+
+// Fixed padding utilities (.pt-10 … .pt-80 / .pb-10 … .pb-80, px).
+// .pt-10/.pt-20 and .pb-10/.pb-20 stay fixed; from 30px up, same scaling as .fdry-block-padding
+// (tablet ×0.75, phone ×0.5).
+@for $i from 1 through 8 {
+	$n: $i * 10;
+
+	.pt-#{$n} {
+		padding-top: #{$n}px;
+
+		@if $n > 30 {
+			@include media("<tablet") {
+				padding-top: calc(#{$n}px * 0.75);
+			}
+
+			@include media("<phone") {
+				padding-top: calc(#{$n}px * 0.5);
+			}
+		}
+	}
+
+	.pb-#{$n} {
+		padding-bottom: #{$n}px;
+
+		@if $n > 30 {
+			@include media("<tablet") {
+				padding-bottom: calc(#{$n}px * 0.75);
+			}
+
+			@include media("<phone") {
+				padding-bottom: calc(#{$n}px * 0.5);
+			}
+		}
+	}
+}

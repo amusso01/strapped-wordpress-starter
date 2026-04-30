@@ -10,6 +10,7 @@
 @use "common/mixin";
 @use "common/general";
 @use "common/helper";
+@use "common/padding-block";
 
 // Components
 @use "components/hamburger";
@@ -19,3 +20,8 @@
 @use "components/footer";
 
 // Templates
+
+// Vendors (after @use — AOS from node_modules)
+// @import "~aos/dist/aos.css";
+@import "~swiper/swiper.css";
+@import "~swiper/modules/pagination.css";
