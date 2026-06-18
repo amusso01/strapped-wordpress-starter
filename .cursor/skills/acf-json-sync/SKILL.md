@@ -33,7 +33,29 @@ Example of the right style:
 }
 ```
 
-## 2. Set `modified` so sync works (without a loop)
+## 2. ACF key and filename conventions
+
+ACF Local JSON files are named after their **unique internal key**, not after human-readable slugs.
+
+| Item type | Key prefix | Filename example | Generate with |
+|---|---|---|---|
+| Field group | `group_` | `group_6a33e996e4507.json` | `uniqid( 'group_' )` |
+| Post type | `post_type_` | `post_type_6a33d042aaa2b.json` | `uniqid( 'post_type_' )` |
+| UI options page | `ui_options_page_` | `ui_options_page_69f36baeef820.json` | ACF dashboard or `uniqid( 'ui_options_page_' )` |
+
+Rules:
+
+- The JSON **filename must match** the `"key"` value (e.g. key `group_abc123` → file `group_abc123.json`).
+- Put human-readable names in `"title"` (field groups / options pages) or post type `"labels"`, **not** in the key or filename.
+- Do **not** use descriptive keys like `group_fd_text_block` or `post_type_knowledge`.
+- Field `name` values (e.g. `anchor_id`, `padding_top`) stay human-readable for PHP/templates; only the ACF object keys use generated IDs.
+
+Project examples in `acf-json/`:
+
+- Text Block field group: `group_6a33e996e4507.json` (`"title": "Text Block"`)
+- Knowledge post type: `post_type_6a33d042aaa2b.json` (`"post_type": "knowledge"`)
+
+## 3. Set `modified` so sync works (without a loop)
 
 ACF shows **Sync available** when the JSON file is considered **newer** than the field group in the database.
 
@@ -47,7 +69,7 @@ Bump **`modified`** so it is **strictly greater than** the group's current **`po
 
 **Practical rule:** run `date +%s` and use that value, or **current + 1**. That is enough for the JSON to count as newer after a normal edit.
 
-**Do not** set `modified` to arbitrary values far in the future (rounded "placeholder" times, hours or days ahead, etc.). That does **not** make sync "more reliable"—it causes the **infinite Sync available loop** in section 3.
+**Do not** set `modified` to arbitrary values far in the future (rounded "placeholder" times, hours or days ahead, etc.). That does **not** make sync "more reliable"—it causes the **infinite Sync available loop** in section 4.
 
 **Clock alignment:** `post_modified` follows the **WordPress server's** clock. If the dev machine clock differs from production, prefer `date +%s` on the server when possible, or compare JSON `modified` to a known-good `post_modified` after saving a group in the UI once.
 
@@ -55,7 +77,7 @@ Bump **`modified`** so it is **strictly greater than** the group's current **`po
 
 If **JSON `modified` ≤ DB `post_modified`**, ACF will not offer sync from that file until `modified` is bumped again.
 
-## 3. "Sync available" never clears (infinite sync loop)
+## 4. "Sync available" never clears (infinite sync loop)
 
 ### What it looks like
 
@@ -77,15 +99,17 @@ You run **Sync** under **Custom Fields → Tools**, ACF reports success, but the
 
 Compare JSON `modified` to DB `post_modified`, e.g. `wp post list --post_type=acf-field-group --fields=post_name,post_modified`. If the JSON number is larger than the Unix time you expect for "now" on the server, you are in the loop scenario above.
 
-## 4. Other conventions
+## 5. Other conventions
 
 - **Save/load path**: The theme must set `acf/settings/save_json` and `acf/settings/load_json` to the theme's `acf-json` folder (e.g. `get_template_directory() . '/acf-json'`). Otherwise ACF uses the default path and theme JSON is ignored.
 - **Field type IDs**: Use the official slugs from the docs (e.g. `text`, `textarea`, `color_picker`, `tab`, `image`, `wysiwyg`, `repeater`). Wrong or custom type strings can break sync or field behaviour.
 - **Color Picker (ACF 6)**: Use **`enable_transparency`** (0 or 1), not `enable_opacity`, in the JSON.
-- **Block location**: Block field groups use `"param": "block"` and `"value": "acf/fd-block-name"` in the `location` array.
+- **Block location**: Block field groups use `"param": "block"` and `"value": "acf/fd-block-name"` in the `location` array. Each block has its own field group JSON file — do not create separate library groups for shared fields.
+- **Shared block fields**: Add `anchor_id` first in each block's `Options` tab, then `padding_top` and `padding_bottom` (50/50 row), then `appearance` when the block uses it, then any block-specific option fields. Do not use ACF Clone fields pointing at shared library groups for these.
+- **Options tab order**: Anchor id → padding top + padding bottom → appearance (if used) → block-specific options. Use `conditional_logic` on optional 50/50 fields so hidden fields do not shift the layout of earlier rows.
 - **Block API version**: Always set `'api_version' => 3` and `'acf_block_version' => 3` in the `acf_register_block()` registration array. `api_version` is the WordPress/Gutenberg block API version (required for iframe editor, mandatory from WP 7.0). `acf_block_version` is ACF's own version that enables the V3 editing model (preview always in canvas, fields in sidebar + expanded editor). Do not include `'mode' => 'edit'` -- ACF Blocks V3 removes modes.
 
-## 5. Documentation links
+## 6. Documentation links
 
 Future agents (and you) can use these for exact behaviour and field structures:
 

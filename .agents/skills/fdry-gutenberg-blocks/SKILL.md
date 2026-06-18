@@ -7,7 +7,7 @@ description: Implement ACF Gutenberg blocks in this theme using the fdry pattern
 
 Use this skill when building a new custom ACF Gutenberg block for this theme.
 
-Base the structure on `components/blocks/wysiwyg-block.php`, but treat background color and the WYSIWYG field as block-specific, not global defaults.
+Base the structure on `components/blocks/text-block.php`, but treat block-specific content fields as block-specific, not global defaults.
 
 ## Files to create or update
 
@@ -18,6 +18,13 @@ For a block named `<name>`:
 - Add `@use "blocks/<name>";` to `src/assets/styles/_main.scss`
 - Add `require get_template_directory() . '/components/blocks/<name>-block.php';` to `library/function-guttenberg.php`
 - Create or update the matching ACF JSON file in `acf-json/`
+
+Shared foundation (already in the theme — do not recreate):
+
+- PHP helpers: `library/function-blocks.php`
+- Padding SCSS: `src/assets/styles/common/_padding-block.scss`
+- Appearance SCSS: `src/assets/styles/common/_appearance-block.scss`
+- Max-width utilities: `src/assets/styles/common/_helper.scss` (`.content-max`, `.content-max--medium`, `.content-max--narrow`)
 
 ## Block naming rules
 
@@ -56,13 +63,13 @@ acf_register_block(array(
     'api_version'       => 3,
     'acf_block_version' => 3,
     'hide_fields_in_sidebar' => true,
-    'title'             => __('<Title>', 'fdry'),
-    'description'       => __('<Description>', 'fdry'),
+    'title'             => __('<Title>', 'foundry'),
+    'description'       => __('<Description>', 'foundry'),
     'render_callback'   => 'foundry_gutenblock_<camelName>Block',
     'supports'          => ['align' => ['wide', 'center', 'full']],
     'category'          => 'foundry-category',
     'icon'              => array(
-        'background' => '#323C4E',
+        'background' => '#0F1F2D',
         'foreground' => '#ffffff',
         'src'        => '<dashicon>',
     ),
@@ -70,43 +77,112 @@ acf_register_block(array(
 ));
 ```
 
+## Layout layers (critical)
+
+Background colour and vertical padding must live on the **same element** — the `<section>` — so padding sits **inside** the coloured area.
+
+| Layer | Classes | Controls |
+|---|---|---|
+| Section | `fd-<name>-block` + `fdry-block-appearance--{light\|dark\|silver}` + `fdry-block-padding` | Background colour, vertical padding; technical `id` for scoped padding CSS |
+| Anchor | `fd-block-anchor` (optional inner `<div>`) | Editor `anchor_id` for in-page nav (`#slug`); omitted when empty |
+| Inner | `content-block` | Horizontal gutters |
+| Inner | `content-max` (+ optional `--medium` / `--narrow`) | Centred column max-width |
+| Content | `fd-<name>-block__content` (or block-specific wrapper) | Block content / typography |
+
+```html
+<section id="fd-<name>-{block-id}" class="fd-<name>-block fdry-block-appearance fdry-block-appearance--light fdry-block-padding">
+    <div id="how-it-works" class="fd-block-anchor" aria-hidden="true"></div><!-- only when anchor_id is set -->
+    <div class="content-block">
+        <div class="content-max">
+            <div class="fd-<name>-block__content">
+                <!-- block content -->
+            </div>
+        </div>
+    </div>
+</section>
+```
+
+The `<section>` keeps a **technical** `id` from `fdry_block_id()` for scoped padding styles. The optional **`anchor_id`** field outputs a separate inner `<div class="fd-block-anchor">` — never put the editor anchor on the `<section>`.
+
+**Do not** put background colour on `content-block` or `content-max`. **Do not** put vertical padding on inner wrappers.
+
+Block-specific options such as `max_width` or `content_align` are implemented in the block PHP/SCSS — not in `function-blocks.php`.
+
+## Appearance variants
+
+| Label | ACF `appearance` | Background | Text / headings |
+|---|---|---|---|
+| Light (white) | `light` | `$color__bright` | `$color__text` body, `$color__main` headings |
+| Dark | `dark` | `$color__main-dark` | `$color__bright` body + headings |
+| Silver | `silver` | `$color__silver` (#F4F6F9) | Same as light |
+
+Silver is a theme token (`$color__silver`) and Gutenberg palette slug `silver`. When a block supports silver, validate and build the appearance class in the block PHP (see `text-block.php`).
+
 ## PHP block pattern
 
-Every block should support these shared fields:
+Shared **Options** fields (defined in each block's own ACF JSON — not separate clone field groups):
 
-- `padding_top`
-- `padding_bottom`
+- `anchor_id` — optional in-page anchor slug (text); always first in Options
+- `padding_top` — shared padding
+- `padding_bottom` — shared padding (50/50 row with padding top)
+- `appearance` — when the block supports light / dark / silver
+
+Block-specific Options (e.g. `max_width`, `content_align`) belong in the block PHP under a `// Block-specific options` comment — not in `function-blocks.php`.
 
 Add a few brief comments in the PHP block file. Do not over-comment, but do add comments where they help the structure read quickly.
 
-- Add `// Options` above the shared option fields such as `padding_top` and `padding_bottom`
-- Add `// Content` above the block content fields such as `background_image`, `title`, `subtitle`, links, or other editorial fields
-- Add a short setup comment before derived values and inline style preparation
-- Add a short render comment immediately before the HTML output starts
-- Prefer structural comments that explain sections, not obvious line-by-line narration
+- Add `// Content` above block content fields and early-return logic
+- Add `// Default options — shared across fdry blocks` before `fdry_block_id()`, padding, and appearance
+- Add `// Block-specific options` before any field logic unique to this block
+- Add `// Render` immediately before the HTML output starts
 
-In the render callback:
-
-1. Read `padding_top` and `padding_bottom` with `get_field()`.
-2. Clamp them to `0..200` when present.
-3. Build a block id as `fd-<name>-` plus `$block['id']` fallback.
-4. Output a `<style>` block only when at least one padding value exists.
-5. Set `--padding-pt` and `--padding-pb` custom properties on the section id.
-6. Render a `<section>` with:
-   - `id="<generated id>"`
-   - `class="fd-<name>-block"`
-   - append `fdry-block-padding` when padding exists
-7. Inside the section, always render:
+In the render callback, use the shared helpers from `library/function-blocks.php` for padding and block id. Handle appearance and block-specific options in the block file:
 
 ```php
-<div class="content-block">
-  <!-- block content here -->
-</div>
+function foundry_gutenblock_<camelName>Block( $block, $content = '', $is_preview = false ) {
+    // Content
+    // Early return if empty (unless $is_preview)
+
+    // Default options — shared across fdry blocks
+    $block_id  = fdry_block_id( $block, 'fd-<name>' );
+    $anchor_id = fdry_block_anchor_id( get_field( 'anchor_id' ) );
+    $padding   = fdry_block_padding( get_field( 'padding_top' ), get_field( 'padding_bottom' ) );
+    $appearance = fdry_block_appearance_class( get_field( 'appearance' ) ); // or inline when block supports silver
+
+    // Block-specific options
+    // e.g. max_width, content_align — map to classes in this file only
+
+    // Render
+    ?>
+    <?= fdry_block_padding_style( $block_id, $padding['pt'], $padding['pb'] ); ?>
+    <section
+        id="<?= esc_attr( $block_id ); ?>"
+        class="fd-<name>-block <?= esc_attr( $appearance ); ?><?= $padding['class']; ?>"
+    >
+        <?php if ( $anchor_id !== '' ) : ?>
+            <div id="<?= esc_attr( $anchor_id ); ?>" class="fd-block-anchor" aria-hidden="true"></div>
+        <?php endif; ?>
+        <div class="content-block">
+            <div class="content-max">
+                <!-- block content here -->
+            </div>
+        </div>
+    </section>
+    <?php
+}
 ```
 
-Keep the shared wrapper generic. Add only the block-specific markup inside `.content-block`.
+Helper behaviour:
 
-Do not add background color support unless the user explicitly asks for it.
+- `fdry_block_anchor_id()` sanitizes `anchor_id` to a valid HTML id (via `sanitize_title` + `sanitize_html_class`); returns empty string when unset — do not output the anchor `<div>` when empty
+- `fdry_block_padding()` clamps values to **0–200** (any integer px; applied via scoped CSS variables + `.fdry-block-padding`)
+- `fdry_block_padding_style()` outputs scoped `--padding-pt` / `--padding-pb` only when values are set
+- `fdry_block_appearance_class()` returns `fdry-block-appearance fdry-block-appearance--light|dark` (defaults to light)
+- `.fdry-block-padding` class is appended only when at least one padding value is set
+
+Do **not** reimplement padding clamping or inline style tags inline in each block. Do **not** add block-specific option helpers to `function-blocks.php`.
+
+For softer off-white backgrounds on a light block, override in the block SCSS (e.g. `&.fdry-block-appearance--light { background-color: #f5f5f5; }`). Do not add per-block color picker fields unless the user explicitly asks. Prefer the `silver` appearance token when the design calls for it.
 
 ## SCSS pattern
 
@@ -114,8 +190,11 @@ Each custom block must have its own SCSS partial in `src/assets/styles/blocks/`.
 
 - File name: `_<name>.scss`
 - Root selector: `.fd-<name>-block`
-- Put only block-specific styles there
+- Put only block-specific layout and visual styles there
 - Rely on `.fdry-block-padding` for shared top/bottom spacing
+- Rely on `.fdry-block-appearance--light|--dark|--silver` for shared text, heading, and button colours
+- Rely on `.content-max` / `.content-max--medium` / `.content-max--narrow` for column width — do not set max-width on the block root
+- Add block-level appearance overrides only when the design needs something the shared tokens do not cover
 
 After creating the partial, add it to `src/assets/styles/_main.scss` with:
 
@@ -125,23 +204,36 @@ After creating the partial, add it to `src/assets/styles/_main.scss` with:
 
 ## ACF JSON pattern
 
-Each block must have a field group JSON file in `acf-json/`.
+Each block must have **one field group JSON file** in `acf-json/` assigned to that block via `"param": "block"`.
 
 The base structure always includes these tabs:
 
 1. `Options`
 2. `Content`
 
-### Options tab defaults
+Do **not** create separate shared field groups for padding or appearance. Do **not** use ACF Clone fields pointing at library groups. Add the fields directly in each block's `Options` tab.
 
-Always include these two fields first in `Options`:
+### Options tab field order (consistent across all blocks)
 
-- `padding_top`
-- `padding_bottom`
+Always follow this order in the `Options` tab:
 
-Use the same structure as the existing WYSIWYG block:
+1. **`anchor_id`** — **always first** (text, full width). Optional in-page anchor for navigation (`#slug`). Omit markup when empty.
+2. **`padding_top`** + **`padding_bottom`** — side by side (`wrapper.width`: `50` each)
+3. **`appearance`** — when the block supports appearance (full width, button group)
+4. **Block-specific option fields** — any layout/control fields unique to the block (e.g. `max_width`, `content_align`)
 
-- field type: `number`
+When two block-specific fields share a 50/50 row, keep them **together after appearance**. Use ACF `conditional_logic` on fields that only apply in certain cases so a hidden field does not leave a gap in an earlier row (e.g. show `content_align` only when `max_width` is `medium` or `narrow`).
+
+#### Shared field settings
+
+**`anchor_id`** — text (label: `ID anchor link`)
+
+- full width
+- instruction: optional slug for in-page links (e.g. `how-it-works` → `#how-it-works`)
+- leave empty to omit the anchor `<div>`
+
+**`padding_top`** / **`padding_bottom`** — number
+
 - instruction: `The value is in pixels (px).`
 - width: `50`
 - min: `0`
@@ -149,7 +241,22 @@ Use the same structure as the existing WYSIWYG block:
 - step: `1`
 - append: `px`
 
-After those two shared fields, add any block-specific option fields in the same `Options` tab.
+**`appearance`** — button group (when the block uses appearance)
+
+- choices: `light` : Light | `dark` : Dark | `silver` : Silver (include only variants the block supports)
+- default: `light`
+- return format: `value`
+- layout: `horizontal`
+- full width (`wrapper.width` empty)
+
+#### Block-specific options (examples)
+
+Add after appearance when the design needs them — not every block will have these:
+
+- **`max_width`** — button group, `wrapper.width`: `50`
+- **`content_align`** — button group, `wrapper.width`: `50`, conditional on medium/narrow max width
+
+Reference: `acf-json/group_6a33e996e4507.json`.
 
 ### Content tab defaults
 
@@ -173,6 +280,7 @@ If the design includes a main visual element, treat it as editable block content
 
 ### JSON rules
 
+- Generate the field group key with `uniqid( 'group_' )` and save as `acf-json/{key}.json` (see `acf-json-sync` skill)
 - Write JSON in expanded, human-readable form with 4-space indentation
 - Set `"param": "block"`
 - Set `"value": "acf/fd-<name>-block"`
@@ -181,14 +289,14 @@ If the design includes a main visual element, treat it as editable block content
 
 ACF JSON does not support comments. Reflect the structure by keeping fields grouped cleanly under the `Options` and `Content` tabs instead of trying to add inline comments to the JSON.
 
-The existing reference example is `acf-json/group_699a00100001.json`, but do not copy its block-specific fields unless the new design actually needs them.
+The existing reference example is `acf-json/group_6a33e996e4507.json`.
 
 ## When the user gives an image
 
 If the user provides a mockup, screenshot, or design reference:
 
 1. Infer the minimum field set needed to build the block.
-2. Keep shared controls in `Options`.
+2. Keep shared controls (`anchor_id`, then `padding_top` + `padding_bottom`, then `appearance` when needed) first in `Options`; add block-specific options after appearance.
 3. Put editorial content fields in `Content`.
 4. If the design contains a main image-driven element, add an image field for it by default.
 5. Build the block PHP, SCSS partial, main stylesheet import, Gutenberg require, and ACF JSON together in one pass.
@@ -201,22 +309,27 @@ Do not derive the block name from the copy visible in the mockup unless the user
 - Block name is generic and component-based, not taken from the visible page copy
 - New block file created in `components/blocks/`
 - Block registered with `acf_register_block()` including `'api_version' => 3` and `'acf_block_version' => 3`
-- PHP file includes brief structural comments for Options, Content, setup, and render sections
-- Render callback outputs the shared section/content-block structure
-- Padding custom properties handled the same way as the WYSIWYG block
+- PHP file includes brief structural comments for Content, Default options, Block-specific options, and render sections
+- Render callback uses `fdry_block_id()`, `fdry_block_anchor_id()`, `fdry_block_padding()`, and `fdry_block_padding_style()`; appearance and block-specific options stay in the block file
+- Optional `anchor_id` renders inner `<div class="fd-block-anchor">` only when set — not on the `<section>`
+- Section owns appearance background + vertical padding; inner wrappers use `content-block` > `content-max` > content wrapper
 - New SCSS partial created in `src/assets/styles/blocks/`
 - New SCSS partial imported in `src/assets/styles/_main.scss`
 - New block file required in `library/function-guttenberg.php`
-- ACF JSON created or updated in `acf-json/`
-- `Options` tab includes `padding_top` and `padding_bottom`
+- ACF JSON created or updated in `acf-json/` (one group per block, not clone library groups)
+- `Options` tab order: `anchor_id` first, then `padding_top` + `padding_bottom`, then `appearance` (if used), then block-specific fields
 - `Content` tab contains the block’s actual editable content fields
 - Primary design images are created as editable ACF image fields by default
 - `modified` timestamp is newer than current time
 
 ## Project references
 
-- PHP example: `components/blocks/wysiwyg-block.php`
-- SCSS example: `src/assets/styles/blocks/_wysiwyg.scss`
+- PHP helpers: `library/function-blocks.php`
+- Padding SCSS: `src/assets/styles/common/_padding-block.scss`
+- Appearance SCSS: `src/assets/styles/common/_appearance-block.scss`
+- Max-width SCSS: `src/assets/styles/common/_helper.scss`
+- PHP example: `components/blocks/text-block.php`
+- SCSS example: `src/assets/styles/blocks/_text.scss`
 - SCSS entrypoint: `src/assets/styles/_main.scss`
 - Gutenberg bootstrap: `library/function-guttenberg.php`
-- ACF JSON example: `acf-json/group_699a00100001.json`
+- ACF JSON example: `acf-json/group_6a33e996e4507.json`

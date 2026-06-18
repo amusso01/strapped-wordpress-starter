@@ -77,26 +77,17 @@ You run **Sync** under **Custom Fields → Tools**, ACF reports success, but the
 
 Compare JSON `modified` to DB `post_modified`, e.g. `wp post list --post_type=acf-field-group --fields=post_name,post_modified`. If the JSON number is larger than the Unix time you expect for "now" on the server, you are in the loop scenario above.
 
-## 4. Local JSON filename must match the group `key`
-
-ACF saves field groups to disk as **`{key}.json`**, where `{key}` is the root **`"key"`** string inside that JSON (e.g. `"key": "group_1776246132_inline_video"` → file **`group_1776246132_inline_video.json`**).
-
-- **One file per field group.** Never keep two JSON files that share the same root `"key"`.
-- **Do not** add `_block` (or any extra suffix) to the filename unless that suffix is **part of** the root `"key"`. The PHP block is still `fd-<name>-block`; the JSON filename follows the ACF group key only.
-- If you find duplicates (e.g. `group_…_inline_video.json` and `group_…_inline_video_block.json` with the **same** `"key"`), **remove** the file whose basename is not exactly `{key}.json`.
-- **Legitimate `_block` in the filename** exists only when the stored key includes it (e.g. `"key": "group_1776100000_seven_pillars_block"` → `group_1776100000_seven_pillars_block.json`). That mirrors the key; it is not optional decoration.
-
-Hand-edited JSON that uses the wrong filename causes “extra” files to appear after someone saves the group in the dashboard, and can confuse Local JSON sync.
-
-## 5. Other conventions
+## 4. Other conventions
 
 - **Save/load path**: The theme must set `acf/settings/save_json` and `acf/settings/load_json` to the theme's `acf-json` folder (e.g. `get_template_directory() . '/acf-json'`). Otherwise ACF uses the default path and theme JSON is ignored.
 - **Field type IDs**: Use the official slugs from the docs (e.g. `text`, `textarea`, `color_picker`, `tab`, `image`, `wysiwyg`, `repeater`). Wrong or custom type strings can break sync or field behaviour.
 - **Color Picker (ACF 6)**: Use **`enable_transparency`** (0 or 1), not `enable_opacity`, in the JSON.
-- **Block location**: Block field groups use `"param": "block"` and `"value": "acf/fd-block-name"` in the `location` array.
+- **Block location**: Block field groups use `"param": "block"` and `"value": "acf/fd-block-name"` in the `location` array. Each block has its own field group JSON file — do not create separate library groups for shared fields.
+- **Shared block fields**: Add `anchor_id` first in each block's `Options` tab, then `padding_top` and `padding_bottom` (50/50 row), then `appearance` when the block uses it, then any block-specific option fields. Do not use ACF Clone fields pointing at shared library groups for these.
+- **Options tab order**: Anchor id → padding top + padding bottom → appearance (if used) → block-specific options. Use `conditional_logic` on optional 50/50 fields so hidden fields do not shift the layout of earlier rows.
 - **Block API version**: Always set `'api_version' => 3` and `'acf_block_version' => 3` in the `acf_register_block()` registration array. `api_version` is the WordPress/Gutenberg block API version (required for iframe editor, mandatory from WP 7.0). `acf_block_version` is ACF's own version that enables the V3 editing model (preview always in canvas, fields in sidebar + expanded editor). Do not include `'mode' => 'edit'` -- ACF Blocks V3 removes modes.
 
-## 6. Documentation links
+## 5. Documentation links
 
 Future agents (and you) can use these for exact behaviour and field structures:
 
