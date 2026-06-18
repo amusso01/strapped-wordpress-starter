@@ -185,27 +185,53 @@ function foundry_customize_register($wp_customize)
 add_action('customize_register', 'foundry_customize_register');
 
 
-//  Add custom variables as css variable
-function fd_root_variables()
+function fd_get_root_css()
 {
 	global $txtcolors;
 	global $fontsize;
-	$css_root = get_stylesheet_directory() . '/dist/styles/root.css';
-	$handle = fopen($css_root, 'w') or die('Cannot open file:  ' . $css_root);
-	$data = '';
 
-	$data .= ':root{' . PHP_EOL;
+	$data = ':root{' . PHP_EOL;
 	foreach ($txtcolors as $txtcolor) {
-		$data .= '--' . $txtcolor["slug"] . ':' . get_theme_mod($txtcolor["slug"], $txtcolor["default"]) . ';' . PHP_EOL;
+		$data .= '--' . $txtcolor['slug'] . ':' . get_theme_mod($txtcolor['slug'], $txtcolor['default']) . ';' . PHP_EOL;
 	}
 	foreach ($fontsize as $size) {
-		$data .= '--' . $size["slug"] . ':' . get_theme_mod($size["slug"], $size["default"]) . 'px;' . PHP_EOL;
+		$data .= '--' . $size['slug'] . ':' . get_theme_mod($size['slug'], $size['default']) . 'px;' . PHP_EOL;
 	}
 	$data .= '--footer-color : ' . get_theme_mod('background', '#ffffff') . ';' . PHP_EOL;
 	$data .= '}';
-	fwrite($handle, $data);
-	fclose($handle);
+
+	return $data;
 }
-add_action('customize_save_after', 'fd_root_variables');
-add_action('init', 'fd_root_variables');
-// TODO => SET THE STYLESHEET TO REWRITE ON REFRESHING THE CUSTOMISER IF POSSIBLE
+
+function fd_write_root_css()
+{
+	$css_root = get_stylesheet_directory() . '/dist/styles/root.css';
+	$dir      = dirname($css_root);
+
+	if (! is_dir($dir)) {
+		wp_mkdir_p($dir);
+	}
+
+	if (! is_writable($dir) && ! file_exists($css_root)) {
+		return;
+	}
+
+	if (file_exists($css_root) && ! is_writable($css_root)) {
+		return;
+	}
+
+	file_put_contents($css_root, fd_get_root_css(), LOCK_EX);
+}
+
+function fd_maybe_write_root_css()
+{
+	$css_root = get_stylesheet_directory() . '/dist/styles/root.css';
+
+	if (! file_exists($css_root)) {
+		fd_write_root_css();
+	}
+}
+
+add_action('customize_save_after', 'fd_write_root_css');
+add_action('after_switch_theme', 'fd_write_root_css');
+add_action('admin_init', 'fd_maybe_write_root_css');

@@ -8,7 +8,6 @@ export default {
 		smoothscroll.polyfill();
 
 		// Hamburger event listener
-		hamburger();
 	},
 
 	finalize() {

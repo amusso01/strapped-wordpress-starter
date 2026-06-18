@@ -73,8 +73,9 @@ if ( ! function_exists( 'foundry_setup' ) ) :
 
 		// STYLE
 
-		wp_register_style( 'root-styles', get_template_directory_uri() . '/dist/styles/root.css', array(), '1.0', 'all'  );
-	
+		wp_register_style( 'root-styles', false, array(), '1.0', 'all' );
+		wp_add_inline_style( 'root-styles', fd_get_root_css() );
+
 		wp_register_style( 'foundry-styles', get_template_directory_uri() . '/dist/styles/' . foundry_asset_path( 'main.css' ), array('root-styles'), '1.0', 'all' );
 		wp_enqueue_style( 'foundry-styles' );
 		
